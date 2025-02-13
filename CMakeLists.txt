@@ -47,6 +47,7 @@ pico_enable_stdio_usb(Tarefa_Conversores_AD 1)
 # Add the standard library to the build
 target_link_libraries(Tarefa_Conversores_AD
         pico_stdlib
+        hardware_adc
         hardware_clocks
         hardware_i2c
         hardware_pio
