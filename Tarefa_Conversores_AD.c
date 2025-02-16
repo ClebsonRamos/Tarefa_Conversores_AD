@@ -6,6 +6,7 @@
 #include "hardware/i2c.h"
 #include "hardware/pio.h"
 #include "hardware/pwm.h"
+#include "inclusao/ssd1306.h"
 #include "hardware/timer.h"
 
 //-----DIRETIVAS PARA AS CONSTANTES-----
@@ -18,6 +19,8 @@
 #define PINO_BOTAO_A 5
 #define PINO_DISPLAY_SDA 14
 #define PINO_DISPLAY_SCL 15
+#define I2C_PORTA i2c1
+#define ENDERECO 0x3C
 
 //-----VARIÁVEIS GLOBAIS-----
 static volatile bool estado_botao_A = false;
@@ -27,10 +30,13 @@ uint16_t duty_cycle_x = 0, duty_cycle_y = 0;
 static volatile uint numero_slice_x, numero_slice_y;
 float divisor_de_clock_xy = 4.0;
 static volatile uint32_t tempo_passado = 0;
+ssd1306_t ssd; // Inicialização da estrutura do display.
 
 //-----PROTÓTIPOS DAS FUNÇÕES-----
 void configuracao_inicial_pwm(void);
+void display_retangulo(void);
 void funcao_de_interrupcao(uint pino, uint32_t evento);
+void inicializacao_do_display(void);
 void inicializacao_dos_pinos(void);
 void manipulacao_pwm_leds(uint16_t x, uint16_t y);
 bool tratamento_debouce(void);
@@ -41,11 +47,14 @@ int main(void){
 
     stdio_init_all();
     inicializacao_dos_pinos();
+    inicializacao_do_display();
     configuracao_inicial_pwm();
 
     // Habilitação dos botões para ativação das interrupções
     gpio_set_irq_enabled_with_callback(PINO_BOTAO_A, GPIO_IRQ_EDGE_FALL, true, &funcao_de_interrupcao);
     gpio_set_irq_enabled_with_callback(PINO_BOTAO_JOYSTICK, GPIO_IRQ_EDGE_FALL, true, &funcao_de_interrupcao);
+
+    display_retangulo();
 
     while(true){
         adc_select_input(0);
@@ -75,6 +84,17 @@ void configuracao_inicial_pwm(void){
     pwm_set_enabled(numero_slice_y, false);
 }
 
+void display_retangulo(void){
+    ssd1306_fill(&ssd, true);
+    if(estado_botao_joystick)
+        ssd1306_rect(&ssd, 3, 3, 122, 58, false, true);
+    else
+        ssd1306_rect(&ssd, 1, 1, 126, 62, false, true);
+    printf("Funcao ssd1306_hline executada.\n");
+    ssd1306_send_data(&ssd);
+    printf("Funcao ssd1306_send_data executada.\n");
+}
+
 void funcao_de_interrupcao(uint pino, uint32_t evento){
     if(pino == PINO_BOTAO_A){
         bool resultado_debouce = tratamento_debouce();
@@ -92,8 +112,19 @@ void funcao_de_interrupcao(uint pino, uint32_t evento){
             estado_botao_joystick = !estado_botao_joystick;
             printf("Botao do joystick pressionado. [%d]\n", estado_botao_joystick);
             gpio_put(PINO_LED_VERDE, estado_botao_joystick);
+            display_retangulo();
         }
     }
+}
+
+void inicializacao_do_display(void){
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORTA); // Inicializa o display
+    ssd1306_config(&ssd); // Configura o display
+    ssd1306_send_data(&ssd); // Envia os dados para o display
+
+    // Limpa o display. O display inicia com todos os pixels apagados.
+    ssd1306_fill(&ssd, false);
+    ssd1306_send_data(&ssd);
 }
 
 void inicializacao_dos_pinos(void){
@@ -115,6 +146,12 @@ void inicializacao_dos_pinos(void){
 
     gpio_set_function(PINO_LED_VERMELHO, GPIO_FUNC_PWM);
     gpio_set_function(PINO_LED_AZUL, GPIO_FUNC_PWM);
+
+    i2c_init(I2C_PORTA, 400 * 1000); // Inicialização do protocolo I2C em 400 kHz.
+    gpio_set_function(PINO_DISPLAY_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(PINO_DISPLAY_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(PINO_DISPLAY_SDA);
+    gpio_pull_up(PINO_DISPLAY_SCL);
 }
 
 void manipulacao_pwm_leds(uint16_t x, uint16_t y){
