@@ -1,5 +1,4 @@
 //-----BIBLIOTECAS UTILIZADAS-----
-#include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
@@ -28,12 +27,10 @@ static volatile bool estado_botao_joystick = false; // Controla o estado do bot�
 uint16_t wrap_direcao_xy = 2048; // Período do PWM
 uint16_t duty_cycle_x = 0, duty_cycle_y = 0; // Período de nível alto de sinal para as direções X e Y do PWM.
 static volatile uint numero_slice_x, numero_slice_y;
-float divisor_de_clock_xy = 4.0;
 static volatile uint32_t tempo_passado = 0; //Registro do tempo para debounce dos botões.
 ssd1306_t ssd; // Inicialização da estrutura do display.
 
 uint8_t quadrado[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Vetor com o código em hexadecimal para o quadrado da tela.
-uint16_t adc_valor_x, adc_valor_y; // Variáveis para armazenamento temporário do valor lido pelo ADC.
 
 //-----PROTÓTIPOS DAS FUNÇÕES-----
 void configuracao_inicial_pwm(void);
@@ -48,8 +45,8 @@ bool tratamento_debounce(void);
 //-----FUNÇÃO PRINCIPAL-----
 int main(void){
     uint16_t aux_x, aux_y;
+    uint16_t adc_valor_x, adc_valor_y; // Variáveis para armazenamento temporário do valor lido pelo ADC.
 
-    stdio_init_all();
     inicializacao_dos_pinos();
     inicializacao_do_display();
     configuracao_inicial_pwm();
@@ -66,8 +63,8 @@ int main(void){
         adc_valor_y = adc_read();
         adc_select_input(1);
         adc_valor_x = adc_read();
-        aux_x = adc_valor_x / 32;
-        aux_y = 64 - adc_valor_y * 15 / 1024;
+        aux_x = adc_valor_x * 15 / 512;
+        aux_y = 56 - adc_valor_y * 7 / 512;
         desenhar_quadrado(aux_x, aux_y);
         if(estado_botao_A)
             manipulacao_pwm_leds(adc_valor_x, adc_valor_y);
@@ -81,22 +78,17 @@ int main(void){
 // Função para configuração inicial para o PWM dos LEDs azul e vermelho.
 void configuracao_inicial_pwm(void){
     numero_slice_x = pwm_gpio_to_slice_num(PINO_LED_VERMELHO);
-    //pwm_set_clkdiv(numero_slice_x, divisor_de_clock_xy);
     pwm_set_wrap(numero_slice_x, wrap_direcao_xy);
-    //pwm_set_gpio_level(PINO_LED_VERMELHO, duty_cycle_x);
     pwm_set_enabled(numero_slice_x, false);
 
     numero_slice_y = pwm_gpio_to_slice_num(PINO_LED_AZUL);
-    //pwm_set_clkdiv(numero_slice_y, divisor_de_clock_xy);
     pwm_set_wrap(numero_slice_y, wrap_direcao_xy);
-    //pwm_set_gpio_level(PINO_LED_AZUL, duty_cycle_y);
     pwm_set_enabled(numero_slice_y, false);
 }
 
 // Função para desenhar o quadrado de 8x8 pixels.
 void desenhar_quadrado(uint8_t x, uint8_t y){
     uint16_t index = 0;
-    uint8_t novo_x = x - 4, novo_y = y - 4;
 
     ssd1306_fill(&ssd, true);
     desenhar_retangulo();
@@ -104,7 +96,7 @@ void desenhar_quadrado(uint8_t x, uint8_t y){
     for(uint8_t i = 0; i < 8; ++i){
         uint8_t line = quadrado[i];
         for(uint8_t j = 0; j < 8; ++j){
-            ssd1306_pixel(&ssd, novo_x + i, novo_y + j, line & (1 << j));
+            ssd1306_pixel(&ssd, x + i, y + j, line & (1 << j));
         }
     }
     ssd1306_send_data(&ssd);
@@ -125,7 +117,6 @@ void funcao_de_interrupcao(uint pino, uint32_t evento){
         bool resultado_debouce = tratamento_debounce();
         if(resultado_debouce){
             estado_botao_A = !estado_botao_A;
-            printf("Botao A pressionado. [%d]\n", estado_botao_A);
             if(!estado_botao_A)
                 manipulacao_pwm_leds(0, 0);
             pwm_set_enabled(numero_slice_x, estado_botao_A);
@@ -135,7 +126,6 @@ void funcao_de_interrupcao(uint pino, uint32_t evento){
         bool resultado_debouce = tratamento_debounce();
         if(resultado_debouce){
             estado_botao_joystick = !estado_botao_joystick;
-            printf("Botao do joystick pressionado. [%d]\n", estado_botao_joystick);
             gpio_put(PINO_LED_VERDE, estado_botao_joystick);
         }
     }
