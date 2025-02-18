@@ -143,26 +143,32 @@ void inicializacao_do_display(void){
 
 // Função para inicialização dos pinos utilizados neste programa.
 void inicializacao_dos_pinos(void){
+    // Inicialização do pino associado ao LEd verde (GPIO 11).
     gpio_init(PINO_LED_VERDE);
     gpio_set_dir(PINO_LED_VERDE, GPIO_OUT);
     gpio_put(PINO_LED_VERDE, false);
 
+    // Inicialização dos pinos associados aos potenciômetros do joystick (GPIOs 26 e 27).
     adc_init();
     adc_gpio_init(PINO_JOYSTICK_X);
     adc_gpio_init(PINO_JOYSTICK_Y);
 
+    // Inicialização do pino associado ao botão A (GPIO 5).
     gpio_init(PINO_BOTAO_A);
     gpio_set_dir(PINO_BOTAO_A, GPIO_IN);
     gpio_pull_up(PINO_BOTAO_A);
 
+    // Inicialização do pino associado ao botão do joystick (GPIO 22).
     gpio_init(PINO_BOTAO_JOYSTICK);
     gpio_set_dir(PINO_BOTAO_JOYSTICK, GPIO_IN);
     gpio_pull_up(PINO_BOTAO_JOYSTICK);
 
+    // Habilitação do PWM aos pinos associados aos LEDs azul e vermelho (GPIOs 12 e 13).
     gpio_set_function(PINO_LED_VERMELHO, GPIO_FUNC_PWM);
     gpio_set_function(PINO_LED_AZUL, GPIO_FUNC_PWM);
 
-    i2c_init(I2C_PORTA, 400 * 1000); // Inicialização do protocolo I2C em 400 kHz.
+    // Inicialização do protocolo I2C em 400 kHz.
+    i2c_init(I2C_PORTA, 400 * 1000);
     gpio_set_function(PINO_DISPLAY_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PINO_DISPLAY_SCL, GPIO_FUNC_I2C);
     gpio_pull_up(PINO_DISPLAY_SDA);
