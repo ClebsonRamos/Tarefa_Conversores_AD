@@ -62,7 +62,10 @@ int main(void){
         adc_valor_y = adc_read();
         adc_select_input(1);
         adc_valor_x = adc_read();
+        // Conversão do valor lido pelo ADC no eixo X (0 à 4095) para o valor de largura da tela do display (0 à 127).
         aux_x = adc_valor_x * 15 / 512;
+        // Conversão do valor lido pelo ADC no eixo Y (0 à 4095) para o valor de largura da tela do display (0 à 63).
+        // Para o eixo Y, foi necessário uma inversão, visto que o sentido de indexação dos pixels verticalmente é para baixo.
         aux_y = 56 - adc_valor_y * 7 / 512;
         desenhar_quadrado(aux_x, aux_y);
         if(estado_botao_A)
