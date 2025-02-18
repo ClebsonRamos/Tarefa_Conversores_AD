@@ -1,10 +1,12 @@
 Projeto: Controle de LEDs e display SSP1306 com joystick e manipulação de PWM
 
 
+
 DESCRIÇÃO
 
 Este projeto manipula uma animação em um display SSD1306, formada por um quadrado e 8x8 pixels, onde a posição desse quadrado é alterada em função dos valores lidos por 2 potenciômetros associados à um joystick na placa BitDogLab. A comunicação do joystick com a tela é realizada por um conversor analógico-digital, que interpreta os valores lidos do joystick, e atualiza a posição do quadrado na tela através do protocolo de comunicação I2C.
 O botão A ativa os LEDs azul e vermelho, que tem a intensidade das luzes alteradas via PWM em função dos valores lidos dos potenciômetros do joystick. O botão do joystick ativa a alteração de espessura de uma borda mostrada no display, além de ativar o LED verde que indica que essa alteração foi realizada. O código foi desenvolvido em linguagem C utilizando o Pico SDK.
+
 
 
 COMPONENTES
@@ -13,6 +15,7 @@ COMPONENTES
 * Joystick presente na placa BitDogLab.
 * LEDs RGB.
 * Display SSD1306.
+
 
 
 FUNCIONALIDADES
@@ -25,6 +28,8 @@ FUNCIONALIDADES
 3. Joystick:
    * Controla a posição do quadrado de 8x8 pixels no display e, caso ativados, controla a intensidade dos LEDs azul e vermelho.
    * O botão do joystick altera a espessura de um retângulo exibido na borda na tela.
+
+
 
 ESTRUTURA DO CÓDIGO
 
@@ -49,6 +54,8 @@ ESTRUTURA DO CÓDIGO
    * Realiza o cálculo aritmético para a alteração da intensidade dos LEDs azul e vermelho em função dos valores lidos do joystick, passados por parâmetro.
 9. Função tratamento_debounce():
     * Realiza o tratamento via software da oscilação na leitura do sinal de acionamento dos botões habilitados (debounce).
+
+
 
 LINK DO VÍDEO DA APRESENTAÇÃO DO PROJETO
   * https://drive.google.com/file/d/1neddTUD8DTCwfEF_0WsQgHPh7B7oDs6P/view?usp=sharing
