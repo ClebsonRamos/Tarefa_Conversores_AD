@@ -3,7 +3,6 @@
 #include "hardware/adc.h"
 #include "hardware/clocks.h"
 #include "hardware/i2c.h"
-#include "hardware/pio.h"
 #include "hardware/pwm.h"
 #include "inclusao/ssd1306.h"
 #include "hardware/timer.h"

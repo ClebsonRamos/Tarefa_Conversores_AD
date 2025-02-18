@@ -50,7 +50,6 @@ target_link_libraries(Tarefa_Conversores_AD
         hardware_adc
         hardware_clocks
         hardware_i2c
-        hardware_pio
         hardware_pwm
         hardware_timer)
 
